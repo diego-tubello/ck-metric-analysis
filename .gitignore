@@ -2,3 +2,4 @@ datasets/
 output/
 plots/
 .DS_Store
+__pycache__/
