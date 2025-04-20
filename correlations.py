@@ -95,6 +95,32 @@ def correlate_groups():
 
     return corrs_df
 
+def generate_correlation_tables(df):
+    """
+    Genera una tabla por combinación de AGG_FUNCTION y CORR_METHOD.
+    Las columnas combinan MÉTRICA + TARGET, y las filas son aplicaciones.
+    """
+    # Agrupar por función de agregación y método de correlación
+    grouping = df.groupby(['AGG_FUNCTION', 'CORR_METHOD'])
+
+    for (agg_func, corr_method), group in grouping:
+        # Pivotear creando columnas por métrica + target
+        table = group.pivot_table(
+            index='APPLICATION_NAME',
+            columns=['TARGET', 'METRIC'],
+            values='CORR_ROLLBACK_RATIO',
+            dropna=False
+        )
+        print(table)
+        # Aplanar las columnas
+        table.columns = [f"{target}_{metric}" for target, metric in table.columns]
+        table = table.round(2)
+        table.reset_index(inplace=True)
+
+        # Guardar en CSV
+        filename = f"./datasets/correlations/tables/{corr_method}_{agg_func}.csv"
+        table.to_csv(filename, index=False)
+
 
 # === Main ===
 
@@ -102,8 +128,10 @@ def main():
     app_corrs = correlate_apps()
     app_corrs.to_csv("./datasets/correlations/apps_correlations.csv", index=False)
     logging.info("Correlaciones guardadas en apps_correlations.csv")
-    
-    
+
+    generate_correlation_tables(app_corrs)
+    logging.info("Tablas de correlación generadas.")
+
     group_corrs = correlate_groups()
     group_corrs.to_csv("./datasets/correlations/groups_correlations.csv", index=False)
     logging.info("Correlaciones guardadas en groups_correlations.csv")
