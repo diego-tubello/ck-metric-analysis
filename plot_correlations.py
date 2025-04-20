@@ -87,8 +87,8 @@ def main():
     groups_corrs = correlate_groups()
     plot_by_group_all(groups_corrs, 'GROUP', './plots/correlations/groups')
 
-    #app_corrs = correlate_apps()
-    #plot_by_group_all(app_corrs, 'APPLICATION_NAME', './plots/correlations/apps')
+    app_corrs = correlate_apps()
+    plot_by_group_all(app_corrs, 'APPLICATION_NAME', './plots/correlations/apps')
 
 
 if __name__ == "__main__":

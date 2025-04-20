@@ -59,7 +59,10 @@ def correlate_apps():
     df_deploys = pd.read_csv("./datasets/apps_deploys_monthly.csv")
     df_deploys['YEAR_MONTH'] = pd.to_datetime(df_deploys['YEAR_MONTH'])
 
-    apps = pd.read_csv("./datasets/applications.csv")
+    apps = pd.read_csv("./datasets/applications_stats.csv")
+    apps = apps[['APPLICATION_NAME', 'group']]
+    apps.rename(columns={"group": "GROUP"}, inplace=True)
+    
     corrs_df = pd.DataFrame()
 
     for _, app in apps.iterrows():
@@ -67,8 +70,12 @@ def correlate_apps():
         df_ck_repo = df_ck[df_ck['APPLICATION_NAME'] == app_name]
         df_deploys_repo = df_deploys[df_deploys['APPLICATION_NAME'] == app_name]
         logging.info(f"Calculando correlaciones para {app_name}")
-        repo_corrs_df = correlate_partition(df_ck_repo, df_deploys_repo, "APPLICATION_NAME", get_repo_id(app_name))
+        repo_corrs_df = correlate_partition(df_ck_repo, df_deploys_repo, "APPLICATION_NAME", app_name)
         corrs_df = pd.concat([corrs_df, repo_corrs_df], ignore_index=True)
+
+    # agregar la columna GROUP con el grupo al que pertenece la aplicación
+    corrs_df = corrs_df.merge(apps, on='APPLICATION_NAME', how='left')
+    corrs_df['APPLICATION_NAME'] = corrs_df['APPLICATION_NAME'].apply(get_repo_id)
 
     return corrs_df
 
@@ -106,16 +113,20 @@ def generate_correlation_tables(df):
     for (agg_func, corr_method), group in grouping:
         # Pivotear creando columnas por métrica + target
         table = group.pivot_table(
-            index='APPLICATION_NAME',
+            index=['APPLICATION_NAME'],
             columns=['TARGET', 'METRIC'],
             values='CORR_ROLLBACK_RATIO',
             dropna=False
         )
-        print(table)
+
         # Aplanar las columnas
         table.columns = [f"{target}_{metric}" for target, metric in table.columns]
         table = table.round(2)
         table.reset_index(inplace=True)
+
+        apps = df[['GROUP', 'APPLICATION_NAME']].drop_duplicates()
+        table = apps.merge(table, on='APPLICATION_NAME', how='left')
+        table.sort_values(by=['GROUP', 'APPLICATION_NAME'], inplace=True)
 
         # Guardar en CSV
         filename = f"./datasets/correlations/tables/{corr_method}_{agg_func}.csv"
