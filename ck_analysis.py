@@ -106,8 +106,8 @@ def keep_last_tag_per_month():
 
 
 def main():
-    #run_ck_verions_all_repos()
-    #combine_results()
+    run_ck_verions_all_repos()
+    combine_results()
     keep_last_tag_per_month()
 
 
