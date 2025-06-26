@@ -14,11 +14,6 @@ El proyecto realiza análisis de las siguientes métricas CK:
 
 ## Estructura del Proyecto
 
-- `datasets/`: Contiene los archivos CSV con datos de métricas y despliegues
-  - `apps_ck_versions.csv`: Métricas CK por versión de cada aplicación
-  - `apps_deploys.csv`: Datos de despliegues y rollbacks
-  - `correlations/`: Resultados de análisis de correlaciones
-
 - `notebooks/`: Jupyter notebooks para análisis y transformación de datos
   - `convert_data.ipynb`: Conversión de datos crudos
   - `correlate_ck_versions.ipynb`: Análisis de correlaciones
